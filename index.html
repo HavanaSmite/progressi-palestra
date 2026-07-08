@@ -266,6 +266,10 @@
       overflow: hidden;
     }
 
+    .history-toggle {
+      margin-bottom: 18px;
+    }
+
     .filters {
       display: grid;
       grid-template-columns: minmax(170px, 1fr) minmax(150px, 220px);
@@ -592,6 +596,13 @@
           </div>
         </div>
 
+        <button class="button history-toggle" id="historyToggle" type="button" aria-controls="historyPanel" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6Z M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Visualizza storico</span>
+        </button>
+
         <div class="panel chart-controls">
           <h2>Grafico progressi</h2>
           <div class="chart-actions">
@@ -620,7 +631,7 @@
           </div>
         </div>
 
-        <div class="panel history-panel">
+        <div class="panel history-panel" id="historyPanel" hidden>
           <div class="filters">
             <input id="searchInput" type="search" placeholder="Cerca esercizio">
             <select id="filterMuscle">
@@ -645,6 +656,8 @@
   <script>
     const STORAGE_KEY = "progressi-palestra-v1";
     const form = document.querySelector("#workoutForm");
+    const historyToggle = document.querySelector("#historyToggle");
+    const historyPanel = document.querySelector("#historyPanel");
     const exerciseInput = document.querySelector("#exercise");
     const exerciseSuggestions = document.querySelector("#exerciseSuggestions");
     const muscleInput = document.querySelector("#muscle");
@@ -652,6 +665,19 @@
     const repsInput = document.querySelector("#reps");
     const setsInput = document.querySelector("#sets");
     const tableWrap = document.querySelector("#tableWrap");
+
+    historyToggle.addEventListener("click", () => {
+      const willOpen = historyPanel.hidden;
+      historyPanel.hidden = !willOpen;
+      historyToggle.setAttribute("aria-expanded", String(willOpen));
+      historyToggle.querySelector("span").textContent = willOpen
+        ? "Nascondi storico"
+        : "Visualizza storico";
+
+      if (willOpen) {
+        historyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
     const searchInput = document.querySelector("#searchInput");
     const filterMuscle = document.querySelector("#filterMuscle");
     const chartExercise = document.querySelector("#chartExercise");
