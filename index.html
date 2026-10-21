@@ -1632,6 +1632,13 @@
     render();
 
     if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      let refreshingAfterUpdate = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshingAfterUpdate) return;
+        refreshingAfterUpdate = true;
+        window.location.reload();
+      });
+
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js").catch(() => {
           showToast("Modalita offline non disponibile.");
