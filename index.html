@@ -150,15 +150,37 @@
       transform: translateY(-1px);
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(310px, 390px) minmax(0, 1fr);
-      gap: 18px;
-      align-items: start;
+    .view-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
-    .layout > * {
-      min-width: 0;
+    .nav-btn {
+      flex: 1;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .nav-btn.active {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
     }
 
     .panel {
@@ -170,8 +192,8 @@
 
     .entry-panel {
       padding: 18px;
-      position: sticky;
-      top: 18px;
+      max-width: 540px;
+      margin: 0 auto;
     }
 
     .panel-title {
@@ -266,10 +288,6 @@
       overflow: hidden;
     }
 
-    .history-toggle {
-      margin-bottom: 18px;
-    }
-
     .filters {
       display: grid;
       grid-template-columns: minmax(170px, 1fr) minmax(150px, 220px);
@@ -294,6 +312,13 @@
       grid-template-columns: minmax(170px, 1fr) auto;
       gap: 10px;
       align-items: end;
+    }
+
+    .chart-filters {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
     }
 
     .chart-panel {
@@ -413,6 +438,30 @@
       color: var(--muted);
     }
 
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .pagination .button {
+      min-height: 38px;
+    }
+
+    .pagination .button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .pagination span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
     .toast {
       position: fixed;
       right: 18px;
@@ -434,9 +483,48 @@
       transform: translateY(0);
     }
 
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(24, 33, 47, 0.45);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .sheet-overlay[hidden] {
+      display: none;
+    }
+
+    .sheet {
+      width: min(420px, 100%);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .sheet h3 {
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+
+    .sheet-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .sheet-option {
+      justify-content: flex-start;
+      min-height: 48px;
+    }
+
     @media (max-width: 860px) {
-      .topbar,
-      .layout {
+      .topbar {
         display: grid;
         grid-template-columns: 1fr;
       }
@@ -447,10 +535,6 @@
 
       .toolbar .button {
         flex: 1 1 160px;
-      }
-
-      .entry-panel {
-        position: static;
       }
 
       .stats {
@@ -476,12 +560,21 @@
 
       .field-row,
       .filters,
-      .chart-actions {
+      .chart-actions,
+      .chart-filters {
         grid-template-columns: 1fr;
       }
 
       .button {
         width: 100%;
+      }
+
+      .view-nav {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn {
+        flex: 1 1 100%;
       }
 
       table {
@@ -512,11 +605,11 @@
           </svg>
           Importa
         </button>
-        <button class="button" id="exportBtn" type="button" title="Esporta i dati in CSV">
+        <button class="button" id="exportBtn" type="button" title="Esporta i dati">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          CSV
+          Esporta
         </button>
         <button class="button danger" id="clearBtn" type="button" title="Cancella tutto lo storico">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -527,8 +620,29 @@
       </div>
     </header>
 
-    <section class="layout" aria-label="Applicazione registro palestra">
-      <aside class="panel entry-panel">
+    <nav class="view-nav" aria-label="Sezioni app">
+      <button class="nav-btn active" type="button" data-view="home">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Allenamento
+      </button>
+      <button class="nav-btn" type="button" data-view="history">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 7v5l4 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Storico
+      </button>
+      <button class="nav-btn" type="button" data-view="charts">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Grafici
+      </button>
+    </nav>
+
+    <section class="view" data-view="home" id="view-home" aria-label="Inserimento allenamento">
+      <div class="panel entry-panel">
         <div class="panel-title">
           <h2>Nuova registrazione</h2>
           <span class="date-pill" id="todayLabel"></span>
@@ -582,82 +696,103 @@
             Salva allenamento
           </button>
         </form>
-      </aside>
+      </div>
+    </section>
 
-      <section>
-        <div class="stats" aria-label="Statistiche">
-          <div class="stat">
-            <span>Allenamenti</span>
-            <strong id="statCount">0</strong>
-          </div>
-          <div class="stat">
-            <span>Ultimo gruppo</span>
-            <strong id="statLast">-</strong>
-          </div>
+    <section class="view" data-view="history" id="view-history" hidden aria-label="Storico allenamenti">
+      <div class="stats" aria-label="Statistiche">
+        <div class="stat">
+          <span>Allenamenti</span>
+          <strong id="statCount">0</strong>
         </div>
-
-        <button class="button history-toggle" id="historyToggle" type="button" aria-controls="historyPanel" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6Z M12 9a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Visualizza storico</span>
-        </button>
-
-        <div class="panel chart-controls">
-          <h2>Grafico progressi</h2>
-          <div class="chart-actions">
-            <div class="field">
-              <label for="chartExercise">Esercizio registrato</label>
-              <select id="chartExercise">
-                <option value="">Seleziona esercizio</option>
-              </select>
-            </div>
-            <button class="button" id="chartBtn" type="button" title="Crea grafico per l'esercizio selezionato">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Crea grafico
-            </button>
-          </div>
+        <div class="stat">
+          <span>Ultimo gruppo</span>
+          <strong id="statLast">-</strong>
         </div>
+      </div>
 
-        <div class="panel chart-panel" id="chartPanel">
-          <div class="chart-head">
-            <h2 id="chartTitle">Progressi</h2>
-            <span class="chart-note">Tempo sulle X, peso sulle Y</span>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="progressChart" aria-label="Grafico dei progressi" role="img"></canvas>
-          </div>
+      <div class="panel history-panel">
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Cerca esercizio">
+          <select id="filterMuscle">
+            <option value="">Tutti i gruppi</option>
+            <option>Petto</option>
+            <option>Schiena</option>
+            <option>Spalle</option>
+            <option>Braccia</option>
+            <option>Gambe</option>
+            <option>Core</option>
+            <option>Cardio</option>
+          </select>
         </div>
+        <div class="table-wrap" id="tableWrap"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </section>
 
-        <div class="panel history-panel" id="historyPanel" hidden>
-          <div class="filters">
-            <input id="searchInput" type="search" placeholder="Cerca esercizio">
-            <select id="filterMuscle">
-              <option value="">Tutti i gruppi</option>
-              <option>Petto</option>
-              <option>Schiena</option>
-              <option>Spalle</option>
-              <option>Braccia</option>
-              <option>Gambe</option>
-              <option>Core</option>
-              <option>Cardio</option>
+    <section class="view" data-view="charts" id="view-charts" hidden aria-label="Grafici progressi">
+      <div class="panel chart-controls">
+        <h2>Grafico progressi</h2>
+        <div class="chart-actions">
+          <div class="field">
+            <label for="chartExercise">Esercizio registrato</label>
+            <select id="chartExercise">
+              <option value="">Seleziona esercizio</option>
             </select>
           </div>
-          <div class="table-wrap" id="tableWrap"></div>
+          <button class="button" id="chartBtn" type="button" title="Crea grafico per l'esercizio selezionato">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Crea grafico
+          </button>
         </div>
-      </section>
+        <div class="chart-filters">
+          <div class="field">
+            <label for="chartFrom">Da (opzionale)</label>
+            <input id="chartFrom" type="date">
+          </div>
+          <div class="field">
+            <label for="chartTo">A (opzionale)</label>
+            <input id="chartTo" type="date">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel chart-panel" id="chartPanel">
+        <div class="chart-head">
+          <h2 id="chartTitle">Progressi</h2>
+          <span class="chart-note">Tempo sulle X, peso sulle Y</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="progressChart" aria-label="Grafico dei progressi" role="img"></canvas>
+        </div>
+      </div>
     </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <div class="sheet-overlay" id="sheetOverlay" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <h3 id="sheetTitle"></h3>
+      <div class="sheet-options" id="sheetOptions"></div>
+      <button class="button" id="sheetCancel" type="button">Annulla</button>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+
   <script>
+    // Incolla qui il Client ID OAuth e la API Key creati su Google Cloud Console
+    // (vedi guida: Drive API + Picker API abilitate, origine autorizzata la URL di GitHub Pages).
+    const GOOGLE_CLIENT_ID = "1039200871130-tk9japem8jjsmaf6f84buprjp8qmptp1.apps.googleusercontent.com";
+    const GOOGLE_API_KEY = "AIzaSyCpfo0eOkpT_eR4Mx1_DjueMbgLQrnhJrQ";
+    const GOOGLE_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
     const STORAGE_KEY = "progressi-palestra-v1";
     const form = document.querySelector("#workoutForm");
-    const historyToggle = document.querySelector("#historyToggle");
-    const historyPanel = document.querySelector("#historyPanel");
     const exerciseInput = document.querySelector("#exercise");
     const exerciseSuggestions = document.querySelector("#exerciseSuggestions");
     const muscleInput = document.querySelector("#muscle");
@@ -665,22 +800,24 @@
     const repsInput = document.querySelector("#reps");
     const setsInput = document.querySelector("#sets");
     const tableWrap = document.querySelector("#tableWrap");
+    const navButtons = document.querySelectorAll(".nav-btn");
+    const views = document.querySelectorAll(".view");
 
-    historyToggle.addEventListener("click", () => {
-      const willOpen = historyPanel.hidden;
-      historyPanel.hidden = !willOpen;
-      historyToggle.setAttribute("aria-expanded", String(willOpen));
-      historyToggle.querySelector("span").textContent = willOpen
-        ? "Nascondi storico"
-        : "Visualizza storico";
-
-      if (willOpen) {
-        historyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+    navButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.view;
+        navButtons.forEach((other) => other.classList.toggle("active", other === btn));
+        views.forEach((view) => {
+          view.hidden = view.dataset.view !== target;
+        });
+      });
     });
     const searchInput = document.querySelector("#searchInput");
     const filterMuscle = document.querySelector("#filterMuscle");
+    const pagination = document.querySelector("#pagination");
     const chartExercise = document.querySelector("#chartExercise");
+    const chartFrom = document.querySelector("#chartFrom");
+    const chartTo = document.querySelector("#chartTo");
     const chartBtn = document.querySelector("#chartBtn");
     const chartPanel = document.querySelector("#chartPanel");
     const chartTitle = document.querySelector("#chartTitle");
@@ -690,9 +827,18 @@
     const statCount = document.querySelector("#statCount");
     const statLast = document.querySelector("#statLast");
     const todayLabel = document.querySelector("#todayLabel");
+    const sheetOverlay = document.querySelector("#sheetOverlay");
+    const sheetTitle = document.querySelector("#sheetTitle");
+    const sheetOptions = document.querySelector("#sheetOptions");
+    const sheetCancel = document.querySelector("#sheetCancel");
 
+    const PAGE_SIZE = 10;
     let workouts = loadWorkouts();
     let activeChartExercise = "";
+    let historyPage = 1;
+    let googleAccessToken = null;
+    let googleTokenClient = null;
+    let googlePickerLoaded = false;
 
     todayLabel.textContent = new Intl.DateTimeFormat("it-IT", {
       day: "2-digit",
@@ -722,6 +868,7 @@
       saveWorkouts();
       form.reset();
       exerciseInput.focus();
+      historyPage = 1;
       render();
       showToast("Allenamento salvato in locale.");
     });
@@ -735,8 +882,18 @@
     exerciseInput.addEventListener("blur", () => {
       fillFromLatestExercise(true);
     });
-    searchInput.addEventListener("input", render);
+    searchInput.addEventListener("input", () => {
+      historyPage = 1;
+      render();
+    });
     filterMuscle.addEventListener("change", () => {
+      historyPage = 1;
+      render();
+    });
+    pagination.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-page]");
+      if (!button) return;
+      historyPage += Number(button.dataset.page);
       render();
     });
     chartExercise.addEventListener("change", hideChart);
@@ -750,8 +907,22 @@
       activeChartExercise = exercise;
       renderChart(exercise);
     });
-    document.querySelector("#importBtn").addEventListener("click", () => {
-      importFile.click();
+    chartFrom.addEventListener("change", () => {
+      if (activeChartExercise) renderChart(activeChartExercise);
+    });
+    chartTo.addEventListener("change", () => {
+      if (activeChartExercise) renderChart(activeChartExercise);
+    });
+    document.querySelector("#importBtn").addEventListener("click", async () => {
+      const choice = await showOptionSheet("Importa dati", [
+        { label: "File dal dispositivo", value: "file" },
+        { label: "Da Google Drive", value: "drive" }
+      ]);
+      if (choice === "file") {
+        importFile.click();
+      } else if (choice === "drive") {
+        importFromDrive();
+      }
     });
     importFile.addEventListener("change", async () => {
       const file = importFile.files[0];
@@ -759,19 +930,7 @@
 
       try {
         const text = await file.text();
-        const imported = parseWorkoutCsv(text);
-        if (!imported.length) {
-          showToast("Nessuna riga valida trovata nel CSV.");
-          return;
-        }
-
-        workouts = [...imported, ...workouts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        saveWorkouts();
-        render();
-        hideChart();
-        showToast(`${imported.length} registrazioni importate.`);
-      } catch (error) {
-        showToast(error.message || "CSV non valido.");
+        await applyImportedCsv(text);
       } finally {
         importFile.value = "";
       }
@@ -788,35 +947,31 @@
 
       workouts = [];
       saveWorkouts();
+      historyPage = 1;
       render();
       hideChart();
       showToast("Storico cancellato.");
     });
 
-    document.querySelector("#exportBtn").addEventListener("click", () => {
+    document.querySelector("#exportBtn").addEventListener("click", async () => {
       if (!workouts.length) {
         showToast("Non ci sono dati da esportare.");
         return;
       }
 
-      const header = ["data", "esercizio", "gruppo_muscolare", "peso_kg", "ripetizioni", "serie"];
-      const rows = workouts.map((item) => [
-        formatDate(item.createdAt),
-        item.exercise,
-        item.muscle,
-        item.weight,
-        item.reps,
-        item.sets
+      const choice = await showOptionSheet("Esporta dati", [
+        { label: "Scarica file CSV", value: "download" },
+        { label: "Carica su Google Drive", value: "drive" }
       ]);
-      const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "progressi-palestra.csv";
-      link.click();
-      URL.revokeObjectURL(url);
-      showToast("CSV esportato.");
+      if (!choice) return;
+
+      const csv = buildCsv();
+      if (choice === "download") {
+        downloadCsv(csv);
+        showToast("CSV esportato.");
+      } else if (choice === "drive") {
+        exportToDrive(csv);
+      }
     });
 
     tableWrap.addEventListener("click", (event) => {
@@ -839,6 +994,219 @@
 
     function saveWorkouts() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+    }
+
+    async function applyImportedCsv(text) {
+      try {
+        const imported = parseWorkoutCsv(text);
+        if (!imported.length) {
+          showToast("Nessuna riga valida trovata nel CSV.");
+          return;
+        }
+
+        workouts = [...imported, ...workouts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        saveWorkouts();
+        historyPage = 1;
+        render();
+        hideChart();
+        showToast(`${imported.length} registrazioni importate.`);
+      } catch (error) {
+        showToast(error.message || "CSV non valido.");
+      }
+    }
+
+    function buildCsv() {
+      const header = ["data", "esercizio", "gruppo_muscolare", "peso_kg", "ripetizioni", "serie"];
+      const rows = workouts.map((item) => [
+        formatDate(item.createdAt),
+        item.exercise,
+        item.muscle,
+        item.weight,
+        item.reps,
+        item.sets
+      ]);
+      return [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
+    }
+
+    function downloadCsv(csv) {
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "progressi-palestra.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showOptionSheet(title, options) {
+      return new Promise((resolve) => {
+        sheetTitle.textContent = title;
+        sheetOptions.innerHTML = options
+          .map((option, index) => `<button class="button sheet-option" type="button" data-index="${index}">${escapeHtml(option.label)}</button>`)
+          .join("");
+        sheetOverlay.hidden = false;
+
+        function cleanup(result) {
+          sheetOverlay.hidden = true;
+          sheetOptions.removeEventListener("click", onOptionClick);
+          sheetCancel.removeEventListener("click", onCancel);
+          sheetOverlay.removeEventListener("click", onOverlayClick);
+          resolve(result);
+        }
+
+        function onOptionClick(event) {
+          const button = event.target.closest("[data-index]");
+          if (!button) return;
+          cleanup(options[Number(button.dataset.index)].value);
+        }
+
+        function onCancel() {
+          cleanup(null);
+        }
+
+        function onOverlayClick(event) {
+          if (event.target === sheetOverlay) cleanup(null);
+        }
+
+        sheetOptions.addEventListener("click", onOptionClick);
+        sheetCancel.addEventListener("click", onCancel);
+        sheetOverlay.addEventListener("click", onOverlayClick);
+      });
+    }
+
+    function isGoogleConfigured() {
+      return !GOOGLE_CLIENT_ID.includes("INCOLLA_QUI") && !GOOGLE_API_KEY.includes("INCOLLA_QUI");
+    }
+
+    function requestGoogleToken() {
+      return new Promise((resolve, reject) => {
+        if (!window.google || !google.accounts || !google.accounts.oauth2) {
+          reject(new Error("Le librerie Google non sono ancora pronte, riprova tra qualche secondo."));
+          return;
+        }
+
+        if (!googleTokenClient) {
+          googleTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: GOOGLE_CLIENT_ID,
+            scope: GOOGLE_DRIVE_SCOPE,
+            callback: () => {}
+          });
+        }
+
+        googleTokenClient.callback = (response) => {
+          if (response.error) {
+            reject(new Error("Accesso a Google Drive negato."));
+            return;
+          }
+          googleAccessToken = response.access_token;
+          resolve(googleAccessToken);
+        };
+        googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? "" : "consent" });
+      });
+    }
+
+    async function getValidGoogleToken() {
+      if (googleAccessToken) return googleAccessToken;
+      return requestGoogleToken();
+    }
+
+    async function exportToDrive(csv) {
+      if (!isGoogleConfigured()) {
+        showToast("Configura Client ID e API Key di Google per usare Drive.");
+        return;
+      }
+
+      try {
+        showToast("Accesso a Google Drive...");
+        const token = await getValidGoogleToken();
+        const metadata = { name: "progressi-palestra.csv", mimeType: "text/csv" };
+        const boundary = "progressi-palestra-" + Math.random().toString(36).slice(2);
+        const body =
+          `--${boundary}\r\n` +
+          `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+          `${JSON.stringify(metadata)}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Type: text/csv\r\n\r\n` +
+          `${csv}\r\n` +
+          `--${boundary}--`;
+
+        const response = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": `multipart/related; boundary=${boundary}`
+          },
+          body
+        });
+
+        if (!response.ok) throw new Error("Caricamento su Drive non riuscito.");
+        showToast("CSV caricato su Google Drive.");
+      } catch (error) {
+        showToast(error.message || "Errore durante il caricamento su Drive.");
+      }
+    }
+
+    function loadGooglePicker() {
+      return new Promise((resolve, reject) => {
+        if (googlePickerLoaded) {
+          resolve();
+          return;
+        }
+        if (!window.gapi) {
+          reject(new Error("Le librerie Google non sono ancora pronte, riprova tra qualche secondo."));
+          return;
+        }
+        gapi.load("picker", {
+          callback: () => {
+            googlePickerLoaded = true;
+            resolve();
+          },
+          onerror: () => reject(new Error("Impossibile aprire il selettore di Google Drive."))
+        });
+      });
+    }
+
+    async function importFromDrive() {
+      if (!isGoogleConfigured()) {
+        showToast("Configura Client ID e API Key di Google per usare Drive.");
+        return;
+      }
+
+      try {
+        const token = await getValidGoogleToken();
+        await loadGooglePicker();
+
+        const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+          .setMimeTypes("text/csv,text/plain")
+          .setSelectFolderEnabled(false);
+
+        const picker = new google.picker.PickerBuilder()
+          .addView(view)
+          .setOAuthToken(token)
+          .setDeveloperKey(GOOGLE_API_KEY)
+          .setCallback((data) => handleDrivePicked(data, token))
+          .build();
+
+        picker.setVisible(true);
+      } catch (error) {
+        showToast(error.message || "Errore nell'apertura di Google Drive.");
+      }
+    }
+
+    async function handleDrivePicked(data, token) {
+      if (data.action !== google.picker.Action.PICKED) return;
+      const file = data.docs[0];
+
+      try {
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error("Impossibile leggere il file da Drive.");
+        const text = await response.text();
+        await applyImportedCsv(text);
+      } catch (error) {
+        showToast(error.message || "Errore durante l'importazione da Drive.");
+      }
     }
 
     function parseWorkoutCsv(text) {
@@ -940,8 +1308,14 @@
 
       if (!filtered.length) {
         tableWrap.innerHTML = '<div class="empty">Nessuna registrazione trovata.</div>';
+        pagination.innerHTML = "";
         return;
       }
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      historyPage = Math.min(Math.max(historyPage, 1), totalPages);
+      const start = (historyPage - 1) * PAGE_SIZE;
+      const pageItems = filtered.slice(start, start + PAGE_SIZE);
 
       tableWrap.innerHTML = `
         <table>
@@ -957,12 +1331,27 @@
             </tr>
           </thead>
           <tbody>
-            ${filtered.map(rowTemplate).join("")}
+            ${pageItems.map(rowTemplate).join("")}
           </tbody>
         </table>
       `;
 
+      renderPagination(historyPage, totalPages);
+
       if (activeChartExercise) renderChart(activeChartExercise);
+    }
+
+    function renderPagination(currentPage, totalPages) {
+      if (totalPages <= 1) {
+        pagination.innerHTML = "";
+        return;
+      }
+
+      pagination.innerHTML = `
+        <button class="button" type="button" data-page="-1" ${currentPage <= 1 ? "disabled" : ""}>Precedente</button>
+        <span>Pagina ${currentPage} di ${totalPages}</span>
+        <button class="button" type="button" data-page="1" ${currentPage >= totalPages ? "disabled" : ""}>Successivo</button>
+      `;
     }
 
     function renderStats() {
@@ -1068,18 +1457,47 @@
     }
 
     function buildChartPoints(exercise) {
+      const fromValue = chartFrom.value ? new Date(`${chartFrom.value}T00:00:00`) : null;
+      const toValue = chartTo.value ? new Date(`${chartTo.value}T23:59:59`) : null;
+
       const byDate = new Map();
       workouts
         .filter((item) => item.exercise.trim().toLowerCase() === exercise.trim().toLowerCase())
+        .filter((item) => {
+          const created = new Date(item.createdAt);
+          if (fromValue && created < fromValue) return false;
+          if (toValue && created > toValue) return false;
+          return true;
+        })
         .forEach((item) => {
           const key = item.createdAt.slice(0, 10);
           const previous = byDate.get(key) || 0;
           byDate.set(key, Math.max(previous, item.weight));
         });
 
-      return Array.from(byDate.entries())
+      const points = Array.from(byDate.entries())
         .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
         .map(([date, weight]) => ({ date, weight }));
+
+      return collapseFlatRuns(points);
+    }
+
+    function collapseFlatRuns(points) {
+      if (points.length <= 2) return points;
+
+      const collapsed = [points[0]];
+      for (let index = 1; index < points.length; index += 1) {
+        const point = points[index];
+        const last = collapsed[collapsed.length - 1];
+        const next = points[index + 1];
+        const sameAsLast = point.weight === last.weight;
+        const sameAsNext = next && next.weight === point.weight;
+
+        if (sameAsLast && sameAsNext) continue;
+        collapsed.push(point);
+      }
+
+      return collapsed;
     }
 
     function drawChart(points) {
@@ -1125,8 +1543,13 @@
         ctx.stroke();
       });
 
+      const timestamps = points.map((point) => new Date(`${point.date}T12:00:00`).getTime());
+      const minTime = Math.min(...timestamps);
+      const maxTime = Math.max(...timestamps);
+      const timeRange = Math.max(maxTime - minTime, 1);
+
       const coordinates = points.map((point, index) => {
-        const x = padding.left + (points.length === 1 ? chartWidth / 2 : (index / (points.length - 1)) * chartWidth);
+        const x = padding.left + (points.length === 1 ? chartWidth / 2 : ((timestamps[index] - minTime) / timeRange) * chartWidth);
         const y = padding.top + chartHeight - ((point.weight - minWeight) / range) * chartHeight;
         return { ...point, x, y };
       });
