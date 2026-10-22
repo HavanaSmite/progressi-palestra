@@ -660,6 +660,60 @@
       </div>
     </section>
 
+    <section class="view" data-view="bodyweight" id="view-bodyweight" hidden aria-label="Peso corporeo">
+      <div class="stats" aria-label="Statistiche peso corporeo">
+        <div class="stat">
+          <span>Peso attuale</span>
+          <strong id="bodyWeightCurrent">-</strong>
+        </div>
+        <div class="stat">
+          <span>Variazione totale</span>
+          <strong id="bodyWeightDelta">-</strong>
+        </div>
+      </div>
+
+      <div class="panel entry-panel">
+        <div class="panel-title">
+          <h2>Nuova misurazione</h2>
+          <span class="date-pill" id="bodyWeightTodayLabel"></span>
+        </div>
+
+        <form id="bodyWeightForm">
+          <div class="field">
+            <label for="bodyWeightDate">Data</label>
+            <input id="bodyWeightDate" name="bodyWeightDate" type="date">
+          </div>
+
+          <div class="field">
+            <label for="bodyWeightValue">Peso corporeo (kg)</label>
+            <input id="bodyWeightValue" name="bodyWeightValue" type="number" min="0" step="0.1" placeholder="75" required>
+          </div>
+
+          <button class="button primary" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Salva peso
+          </button>
+        </form>
+      </div>
+
+      <div class="panel chart-panel" id="bodyWeightChartPanel">
+        <div class="chart-head">
+          <h2>Andamento peso</h2>
+          <span class="chart-note">Tempo sulle X, peso sulle Y</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="bodyWeightChart" aria-label="Grafico del peso corporeo" role="img"></canvas>
+        </div>
+      </div>
+
+      <div class="panel history-panel">
+        <div class="table-wrap" id="bodyWeightTableWrap"></div>
+        <div class="pagination" id="bodyWeightPagination"></div>
+      </div>
+    </section>
+
     <section class="view" data-view="history" id="view-history" hidden aria-label="Storico allenamenti">
       <div class="stats" aria-label="Statistiche">
         <div class="stat">
@@ -787,6 +841,14 @@
             </svg>
             Allenamento
           </button>
+          <button class="button sheet-option" type="button" data-nav="bodyweight">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="4" y="9" width="16" height="11" rx="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="14.5" r="2.2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 9V7a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Peso corporeo
+          </button>
           <button class="button sheet-option" type="button" data-nav="history">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 7v5l4 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
@@ -848,6 +910,7 @@
     const GOOGLE_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 
     const STORAGE_KEY = "progressi-palestra-v1";
+    const BODYWEIGHT_STORAGE_KEY = "progressi-palestra-bodyweight-v1";
     const form = document.querySelector("#workoutForm");
     const exerciseInput = document.querySelector("#exercise");
     const exerciseSuggestions = document.querySelector("#exerciseSuggestions");
@@ -864,6 +927,16 @@
     const menuImportBtn = document.querySelector("#menuImportBtn");
     const menuExportBtn = document.querySelector("#menuExportBtn");
     const menuClearBtn = document.querySelector("#menuClearBtn");
+    const bodyWeightForm = document.querySelector("#bodyWeightForm");
+    const bodyWeightDate = document.querySelector("#bodyWeightDate");
+    const bodyWeightValue = document.querySelector("#bodyWeightValue");
+    const bodyWeightTodayLabel = document.querySelector("#bodyWeightTodayLabel");
+    const bodyWeightCurrent = document.querySelector("#bodyWeightCurrent");
+    const bodyWeightDelta = document.querySelector("#bodyWeightDelta");
+    const bodyWeightChartPanel = document.querySelector("#bodyWeightChartPanel");
+    const bodyWeightChart = document.querySelector("#bodyWeightChart");
+    const bodyWeightTableWrap = document.querySelector("#bodyWeightTableWrap");
+    const bodyWeightPagination = document.querySelector("#bodyWeightPagination");
 
     function openMenu() {
       menuOverlay.hidden = false;
@@ -915,8 +988,10 @@
 
     const PAGE_SIZE = 10;
     let workouts = loadWorkouts();
+    let bodyWeightEntries = loadBodyWeight();
     let activeChartExercise = "";
     let historyPage = 1;
+    let bodyWeightPage = 1;
     let googleAccessToken = null;
     let googleTokenClient = null;
     let googlePickerLoaded = false;
@@ -926,6 +1001,7 @@
       month: "short",
       year: "numeric"
     }).format(new Date());
+    bodyWeightTodayLabel.textContent = todayLabel.textContent;
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -977,6 +1053,45 @@
       historyPage += Number(button.dataset.page);
       render();
     });
+
+    bodyWeightForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(bodyWeightForm);
+      const weightValue = Number(data.get("bodyWeightValue"));
+
+      if (!weightValue || weightValue <= 0) {
+        showToast("Inserisci un peso valido.");
+        return;
+      }
+
+      bodyWeightEntries.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        weight: weightValue,
+        createdAt: getWorkoutDate(String(data.get("bodyWeightDate") || ""))
+      });
+      saveBodyWeight();
+      bodyWeightForm.reset();
+      bodyWeightPage = 1;
+      renderBodyWeight();
+      showToast("Peso registrato.");
+    });
+
+    bodyWeightPagination.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-page]");
+      if (!button) return;
+      bodyWeightPage += Number(button.dataset.page);
+      renderBodyWeight();
+    });
+
+    bodyWeightTableWrap.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-delete-bw]");
+      if (!button) return;
+      bodyWeightEntries = bodyWeightEntries.filter((item) => item.id !== button.dataset.deleteBw);
+      saveBodyWeight();
+      renderBodyWeight();
+      showToast("Misurazione eliminata.");
+    });
+
     chartExercise.addEventListener("change", hideChart);
     chartBtn.addEventListener("click", () => {
       const exercise = chartExercise.value;
@@ -1081,6 +1196,18 @@
 
     function saveWorkouts() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+    }
+
+    function loadBodyWeight() {
+      try {
+        return JSON.parse(localStorage.getItem(BODYWEIGHT_STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBodyWeight() {
+      localStorage.setItem(BODYWEIGHT_STORAGE_KEY, JSON.stringify(bodyWeightEntries));
     }
 
     async function applyImportedCsv(text) {
@@ -1423,18 +1550,18 @@
         </table>
       `;
 
-      renderPagination(historyPage, totalPages);
+      renderPagination(pagination, historyPage, totalPages);
 
       if (activeChartExercise) renderChart(activeChartExercise);
     }
 
-    function renderPagination(currentPage, totalPages) {
+    function renderPagination(target, currentPage, totalPages) {
       if (totalPages <= 1) {
-        pagination.innerHTML = "";
+        target.innerHTML = "";
         return;
       }
 
-      pagination.innerHTML = `
+      target.innerHTML = `
         <button class="button" type="button" data-page="-1" ${currentPage <= 1 ? "disabled" : ""}>Precedente</button>
         <span>Pagina ${currentPage} di ${totalPages}</span>
         <button class="button" type="button" data-page="1" ${currentPage >= totalPages ? "disabled" : ""}>Successivo</button>
@@ -1444,6 +1571,113 @@
     function renderStats() {
       statCount.textContent = workouts.length;
       statLast.textContent = workouts[0]?.muscle || "-";
+    }
+
+    function renderBodyWeightStats() {
+      if (!bodyWeightEntries.length) {
+        bodyWeightCurrent.textContent = "-";
+        bodyWeightDelta.textContent = "-";
+        return;
+      }
+
+      const sortedAsc = [...bodyWeightEntries].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      const oldest = sortedAsc[0];
+      const newest = sortedAsc[sortedAsc.length - 1];
+      bodyWeightCurrent.textContent = `${formatNumber(newest.weight)} kg`;
+
+      if (sortedAsc.length > 1) {
+        const delta = newest.weight - oldest.weight;
+        bodyWeightDelta.textContent = `${delta > 0 ? "+" : ""}${formatNumber(delta)} kg`;
+      } else {
+        bodyWeightDelta.textContent = "-";
+      }
+    }
+
+    function bodyWeightRowTemplate(item, delta) {
+      const deltaText = delta === null || delta === undefined
+        ? "-"
+        : `${delta > 0 ? "+" : ""}${formatNumber(delta)} kg`;
+
+      return `
+        <tr>
+          <td>${escapeHtml(formatDate(item.createdAt))}</td>
+          <td>${formatNumber(item.weight)} kg</td>
+          <td>${deltaText}</td>
+          <td>
+            <button class="delete" type="button" data-delete-bw="${item.id}" title="Elimina misurazione" aria-label="Elimina misurazione del ${escapeHtml(formatDate(item.createdAt))}">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 7h12M10 11v6M14 11v6M8 7V5h8v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function buildBodyWeightPoints() {
+      const byDate = new Map();
+      bodyWeightEntries.forEach((item) => {
+        const key = item.createdAt.slice(0, 10);
+        const existing = byDate.get(key);
+        if (!existing || item.createdAt > existing.createdAt) byDate.set(key, item);
+      });
+
+      const points = Array.from(byDate.values())
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .map((item) => ({ date: item.createdAt.slice(0, 10), weight: item.weight }));
+
+      return collapseFlatRuns(points);
+    }
+
+    function renderBodyWeight() {
+      renderBodyWeightStats();
+
+      const sortedDesc = [...bodyWeightEntries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      if (!sortedDesc.length) {
+        bodyWeightTableWrap.innerHTML = '<div class="empty">Nessuna misurazione registrata.</div>';
+        bodyWeightPagination.innerHTML = "";
+        bodyWeightChartPanel.classList.remove("show");
+        return;
+      }
+
+      const sortedAsc = [...sortedDesc].reverse();
+      const deltaById = new Map();
+      sortedAsc.forEach((item, index) => {
+        const previous = sortedAsc[index - 1];
+        deltaById.set(item.id, previous ? item.weight - previous.weight : null);
+      });
+
+      const totalPages = Math.max(1, Math.ceil(sortedDesc.length / PAGE_SIZE));
+      bodyWeightPage = Math.min(Math.max(bodyWeightPage, 1), totalPages);
+      const start = (bodyWeightPage - 1) * PAGE_SIZE;
+      const pageItems = sortedDesc.slice(start, start + PAGE_SIZE);
+
+      bodyWeightTableWrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Peso</th>
+              <th>Variazione</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageItems.map((item) => bodyWeightRowTemplate(item, deltaById.get(item.id))).join("")}
+          </tbody>
+        </table>
+      `;
+
+      renderPagination(bodyWeightPagination, bodyWeightPage, totalPages);
+
+      const points = buildBodyWeightPoints();
+      if (points.length) {
+        bodyWeightChartPanel.classList.add("show");
+        drawChart(bodyWeightChart, points, "kg");
+      } else {
+        bodyWeightChartPanel.classList.remove("show");
+      }
     }
 
     function rowTemplate(item) {
@@ -1538,11 +1772,11 @@
       if (type === "calibrated") {
         chartTitle.textContent = `Progressi ${exercise} (calibrato)`;
         chartNote.textContent = "Tempo sulle X, punteggio calibrato (peso + ripetizioni + serie) sulle Y";
-        drawChart(points, "kg eq.");
+        drawChart(progressChart, points, "kg eq.");
       } else {
         chartTitle.textContent = `Progressi ${exercise}`;
         chartNote.textContent = "Tempo sulle X, peso sulle Y";
-        drawChart(points, "kg");
+        drawChart(progressChart, points, "kg");
       }
     }
 
@@ -1601,15 +1835,15 @@
       return collapsed;
     }
 
-    function drawChart(points, unit) {
-      const rect = progressChart.getBoundingClientRect();
+    function drawChart(canvas, points, unit) {
+      const rect = canvas.getBoundingClientRect();
       const scale = window.devicePixelRatio || 1;
       const width = Math.max(320, Math.floor(rect.width));
       const height = Math.max(240, Math.floor(rect.height));
-      progressChart.width = width * scale;
-      progressChart.height = height * scale;
+      canvas.width = width * scale;
+      canvas.height = height * scale;
 
-      const ctx = progressChart.getContext("2d");
+      const ctx = canvas.getContext("2d");
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       ctx.clearRect(0, 0, width, height);
 
@@ -1830,6 +2064,7 @@
     setIdleTimer(0);
 
     render();
+    renderBodyWeight();
 
     if ("serviceWorker" in navigator && location.protocol !== "file:") {
       let refreshingAfterUpdate = false;
