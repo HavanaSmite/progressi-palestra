@@ -275,7 +275,7 @@
 
     .chart-actions {
       display: grid;
-      grid-template-columns: minmax(170px, 1fr) auto;
+      grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
       gap: 10px;
       align-items: end;
     }
@@ -701,6 +701,13 @@
               <option value="">Seleziona esercizio</option>
             </select>
           </div>
+          <div class="field">
+            <label for="chartType">Tipo di grafico</label>
+            <select id="chartType">
+              <option value="weight">Peso</option>
+              <option value="calibrated">Calibrato (peso + ripetizioni + serie)</option>
+            </select>
+          </div>
           <button class="button" id="chartBtn" type="button" title="Crea grafico per l'esercizio selezionato">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
@@ -723,7 +730,7 @@
       <div class="panel chart-panel" id="chartPanel">
         <div class="chart-head">
           <h2 id="chartTitle">Progressi</h2>
-          <span class="chart-note">Tempo sulle X, peso sulle Y</span>
+          <span class="chart-note" id="chartNote">Tempo sulle X, peso sulle Y</span>
         </div>
         <div class="chart-wrap">
           <canvas id="progressChart" aria-label="Grafico dei progressi" role="img"></canvas>
@@ -888,11 +895,13 @@
     const filterMuscle = document.querySelector("#filterMuscle");
     const pagination = document.querySelector("#pagination");
     const chartExercise = document.querySelector("#chartExercise");
+    const chartType = document.querySelector("#chartType");
     const chartFrom = document.querySelector("#chartFrom");
     const chartTo = document.querySelector("#chartTo");
     const chartBtn = document.querySelector("#chartBtn");
     const chartPanel = document.querySelector("#chartPanel");
     const chartTitle = document.querySelector("#chartTitle");
+    const chartNote = document.querySelector("#chartNote");
     const progressChart = document.querySelector("#progressChart");
     const importFile = document.querySelector("#importFile");
     const toast = document.querySelector("#toast");
@@ -983,6 +992,9 @@
       if (activeChartExercise) renderChart(activeChartExercise);
     });
     chartTo.addEventListener("change", () => {
+      if (activeChartExercise) renderChart(activeChartExercise);
+    });
+    chartType.addEventListener("change", () => {
       if (activeChartExercise) renderChart(activeChartExercise);
     });
     menuImportBtn.addEventListener("click", async () => {
@@ -1514,7 +1526,8 @@
     }
 
     function renderChart(exercise) {
-      const points = buildChartPoints(exercise);
+      const type = chartType.value;
+      const points = buildChartPoints(exercise, type);
       if (!points.length) {
         hideChart();
         showToast(`Nessun dato per ${exercise}.`);
@@ -1522,8 +1535,15 @@
       }
 
       chartPanel.classList.add("show");
-      chartTitle.textContent = `Progressi ${exercise}`;
-      drawChart(points);
+      if (type === "calibrated") {
+        chartTitle.textContent = `Progressi ${exercise} (calibrato)`;
+        chartNote.textContent = "Tempo sulle X, punteggio calibrato (peso + ripetizioni + serie) sulle Y";
+        drawChart(points, "kg eq.");
+      } else {
+        chartTitle.textContent = `Progressi ${exercise}`;
+        chartNote.textContent = "Tempo sulle X, peso sulle Y";
+        drawChart(points, "kg");
+      }
     }
 
     function hideChart() {
@@ -1531,7 +1551,12 @@
       chartPanel.classList.remove("show");
     }
 
-    function buildChartPoints(exercise) {
+    function calibratedScore(item) {
+      const totalReps = item.reps * item.sets;
+      return item.weight * (1 + totalReps / 30);
+    }
+
+    function buildChartPoints(exercise, type) {
       const fromValue = chartFrom.value ? new Date(`${chartFrom.value}T00:00:00`) : null;
       const toValue = chartTo.value ? new Date(`${chartTo.value}T23:59:59`) : null;
 
@@ -1546,8 +1571,9 @@
         })
         .forEach((item) => {
           const key = item.createdAt.slice(0, 10);
-          const previous = byDate.get(key) || 0;
-          byDate.set(key, Math.max(previous, item.weight));
+          const value = type === "calibrated" ? calibratedScore(item) : item.weight;
+          const previous = byDate.get(key);
+          if (previous === undefined || value > previous) byDate.set(key, value);
         });
 
       const points = Array.from(byDate.entries())
@@ -1575,7 +1601,7 @@
       return collapsed;
     }
 
-    function drawChart(points) {
+    function drawChart(points, unit) {
       const rect = progressChart.getBoundingClientRect();
       const scale = window.devicePixelRatio || 1;
       const width = Math.max(320, Math.floor(rect.width));
@@ -1610,7 +1636,7 @@
       ctx.textBaseline = "middle";
       [minWeight, maxWeight].forEach((value) => {
         const y = padding.top + chartHeight - ((value - minWeight) / range) * chartHeight;
-        ctx.fillText(`${formatNumber(value)} kg`, padding.left - 8, y);
+        ctx.fillText(`${formatNumber(value)} ${unit}`, padding.left - 8, y);
         ctx.strokeStyle = "#eef1f5";
         ctx.beginPath();
         ctx.moveTo(padding.left, y);
@@ -1646,11 +1672,6 @@
         ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-
-        ctx.fillStyle = "#18212f";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "bottom";
-        ctx.fillText(`${formatNumber(point.weight)} kg`, point.x, point.y - 9);
       });
 
       ctx.fillStyle = "#667085";
