@@ -107,13 +107,6 @@
       font-size: 0.98rem;
     }
 
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
     .button {
       min-height: 42px;
       border: 1px solid var(--line);
@@ -150,37 +143,10 @@
       transform: translateY(-1px);
     }
 
-    .view-nav {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-
-    .nav-btn {
-      flex: 1;
-      min-height: 46px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      color: var(--muted);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-weight: 700;
-    }
-
-    .nav-btn svg {
-      width: 18px;
-      height: 18px;
-      stroke-width: 2;
-    }
-
-    .nav-btn.active {
-      border-color: var(--brand);
-      background: var(--brand);
-      color: #fff;
+    .icon-btn {
+      width: 42px;
+      padding: 0;
+      flex: 0 0 auto;
     }
 
     .panel {
@@ -523,20 +489,63 @@
       min-height: 48px;
     }
 
+    .sheet-option.danger {
+      color: var(--accent);
+      border-color: rgba(201, 67, 50, 0.34);
+    }
+
+    .menu-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .menu-group-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .timer-panel {
+      padding: 24px 18px;
+      max-width: 480px;
+      margin: 0 auto;
+      text-align: center;
+      display: grid;
+      gap: 18px;
+    }
+
+    .timer-display {
+      font-size: clamp(3rem, 14vw, 4.5rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .timer-panel.timer-done .timer-display {
+      color: var(--accent);
+      animation: timer-flash 0.6s ease-in-out 4;
+    }
+
+    @keyframes timer-flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .timer-presets {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .timer-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
     @media (max-width: 860px) {
-      .topbar {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
-
-      .toolbar {
-        justify-content: stretch;
-      }
-
-      .toolbar .button {
-        flex: 1 1 160px;
-      }
-
       .stats {
         grid-template-columns: 1fr;
       }
@@ -565,18 +574,6 @@
         grid-template-columns: 1fr;
       }
 
-      .button {
-        width: 100%;
-      }
-
-      .view-nav {
-        flex-wrap: wrap;
-      }
-
-      .nav-btn {
-        flex: 1 1 100%;
-      }
-
       table {
         min-width: 640px;
       }
@@ -597,49 +594,13 @@
           <p class="subtitle">Registra ogni allenamento e consulta lo storico salvato su questo dispositivo.</p>
         </div>
       </div>
-      <div class="toolbar">
-        <input id="importFile" type="file" accept=".csv,text/csv" hidden>
-        <button class="button" id="importBtn" type="button" title="Importa dati da CSV">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 21V9m0 0 4 4m-4-4-4 4M5 5h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Importa
-        </button>
-        <button class="button" id="exportBtn" type="button" title="Esporta i dati">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Esporta
-        </button>
-        <button class="button danger" id="clearBtn" type="button" title="Cancella tutto lo storico">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Cancella
-        </button>
-      </div>
+      <input id="importFile" type="file" accept=".csv,text/csv" hidden>
+      <button class="button icon-btn" id="menuBtn" type="button" aria-label="Apri menu" aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </header>
-
-    <nav class="view-nav" aria-label="Sezioni app">
-      <button class="nav-btn active" type="button" data-view="home">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Allenamento
-      </button>
-      <button class="nav-btn" type="button" data-view="history">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 7v5l4 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Storico
-      </button>
-      <button class="nav-btn" type="button" data-view="charts">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Grafici
-      </button>
-    </nav>
 
     <section class="view" data-view="home" id="view-home" aria-label="Inserimento allenamento">
       <div class="panel entry-panel">
@@ -769,6 +730,31 @@
         </div>
       </div>
     </section>
+
+    <section class="view" data-view="timer" id="view-timer" hidden aria-label="Timer di recupero">
+      <div class="panel timer-panel">
+        <div class="panel-title">
+          <h2>Timer di recupero</h2>
+        </div>
+        <div class="timer-display" id="timerDisplay">00:00</div>
+        <div class="timer-presets">
+          <button class="button" type="button" data-seconds="30">30s</button>
+          <button class="button" type="button" data-seconds="60">60s</button>
+          <button class="button" type="button" data-seconds="90">90s</button>
+          <button class="button" type="button" data-seconds="120">120s</button>
+        </div>
+        <div class="field">
+          <label for="timerCustom">Durata personalizzata (secondi)</label>
+          <input id="timerCustom" type="number" min="1" step="1" placeholder="Es. 75">
+        </div>
+        <div class="timer-controls">
+          <button class="button primary" id="timerStart" type="button">Avvia</button>
+          <button class="button" id="timerPause" type="button" disabled>Pausa</button>
+          <button class="button" id="timerReset" type="button" disabled>Reset</button>
+        </div>
+        <p class="chart-note">Avviso solo visivo e con vibrazione, senza suono.</p>
+      </div>
+    </section>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -778,6 +764,69 @@
       <h3 id="sheetTitle"></h3>
       <div class="sheet-options" id="sheetOptions"></div>
       <button class="button" id="sheetCancel" type="button">Annulla</button>
+    </div>
+  </div>
+
+  <div class="sheet-overlay" id="menuOverlay" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <h3 id="menuTitle">Menu</h3>
+
+      <div class="menu-group">
+        <span class="menu-group-label">Sezioni</span>
+        <div class="sheet-options">
+          <button class="button sheet-option" type="button" data-nav="home">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Allenamento
+          </button>
+          <button class="button sheet-option" type="button" data-nav="history">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 7v5l4 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Storico
+          </button>
+          <button class="button sheet-option" type="button" data-nav="charts">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 19V5M4 19h16M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Grafici
+          </button>
+          <button class="button sheet-option" type="button" data-nav="timer">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="13" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 9v4l3 2M9 2h6M12 2v3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Timer
+          </button>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <span class="menu-group-label">Impostazioni dati</span>
+        <div class="sheet-options">
+          <button class="button sheet-option" type="button" id="menuImportBtn">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 21V9m0 0 4 4m-4-4-4 4M5 5h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Importa
+          </button>
+          <button class="button sheet-option" type="button" id="menuExportBtn">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Esporta
+          </button>
+          <button class="button sheet-option danger" type="button" id="menuClearBtn">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Cancella
+          </button>
+        </div>
+      </div>
+
+      <button class="button" id="menuCloseBtn" type="button">Chiudi</button>
     </div>
   </div>
 
@@ -800,18 +849,41 @@
     const repsInput = document.querySelector("#reps");
     const setsInput = document.querySelector("#sets");
     const tableWrap = document.querySelector("#tableWrap");
-    const navButtons = document.querySelectorAll(".nav-btn");
     const views = document.querySelectorAll(".view");
+    const menuBtn = document.querySelector("#menuBtn");
+    const menuOverlay = document.querySelector("#menuOverlay");
+    const menuNavButtons = document.querySelectorAll("#menuOverlay [data-nav]");
+    const menuCloseBtn = document.querySelector("#menuCloseBtn");
+    const menuImportBtn = document.querySelector("#menuImportBtn");
+    const menuExportBtn = document.querySelector("#menuExportBtn");
+    const menuClearBtn = document.querySelector("#menuClearBtn");
 
-    navButtons.forEach((btn) => {
+    function openMenu() {
+      menuOverlay.hidden = false;
+      menuBtn.setAttribute("aria-expanded", "true");
+    }
+
+    function closeMenu() {
+      menuOverlay.hidden = true;
+      menuBtn.setAttribute("aria-expanded", "false");
+    }
+
+    menuBtn.addEventListener("click", openMenu);
+    menuCloseBtn.addEventListener("click", closeMenu);
+    menuOverlay.addEventListener("click", (event) => {
+      if (event.target === menuOverlay) closeMenu();
+    });
+
+    menuNavButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const target = btn.dataset.view;
-        navButtons.forEach((other) => other.classList.toggle("active", other === btn));
+        const target = btn.dataset.nav;
         views.forEach((view) => {
           view.hidden = view.dataset.view !== target;
         });
+        closeMenu();
       });
     });
+
     const searchInput = document.querySelector("#searchInput");
     const filterMuscle = document.querySelector("#filterMuscle");
     const pagination = document.querySelector("#pagination");
@@ -913,7 +985,8 @@
     chartTo.addEventListener("change", () => {
       if (activeChartExercise) renderChart(activeChartExercise);
     });
-    document.querySelector("#importBtn").addEventListener("click", async () => {
+    menuImportBtn.addEventListener("click", async () => {
+      closeMenu();
       const choice = await showOptionSheet("Importa dati", [
         { label: "File dal dispositivo", value: "file" },
         { label: "Da Google Drive", value: "drive" }
@@ -936,7 +1009,8 @@
       }
     });
 
-    document.querySelector("#clearBtn").addEventListener("click", () => {
+    menuClearBtn.addEventListener("click", () => {
+      closeMenu();
       if (!workouts.length) {
         showToast("Non ci sono dati da cancellare.");
         return;
@@ -953,7 +1027,8 @@
       showToast("Storico cancellato.");
     });
 
-    document.querySelector("#exportBtn").addEventListener("click", async () => {
+    menuExportBtn.addEventListener("click", async () => {
+      closeMenu();
       if (!workouts.length) {
         showToast("Non ci sono dati da esportare.");
         return;
@@ -1628,6 +1703,110 @@
       toast.classList.add("show");
       toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
+
+    const timerDisplay = document.querySelector("#timerDisplay");
+    const timerCustom = document.querySelector("#timerCustom");
+    const timerStart = document.querySelector("#timerStart");
+    const timerPause = document.querySelector("#timerPause");
+    const timerReset = document.querySelector("#timerReset");
+    const timerPanel = document.querySelector(".timer-panel");
+    const timerPresetButtons = document.querySelectorAll("[data-seconds]");
+
+    let timerRemaining = 0;
+    let timerTotal = 0;
+    let timerRunning = false;
+    let timerInterval = null;
+
+    function formatTimer(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+      const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function renderTimerDisplay() {
+      timerDisplay.textContent = formatTimer(timerRemaining);
+    }
+
+    function updateTimerButtons() {
+      const idle = !timerRunning && timerRemaining === 0;
+      const paused = !timerRunning && timerRemaining > 0;
+      timerStart.disabled = !idle;
+      timerPause.disabled = idle;
+      timerPause.textContent = paused ? "Riprendi" : "Pausa";
+      timerReset.disabled = idle;
+    }
+
+    function stopTimerInterval() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+    }
+
+    function setIdleTimer(seconds) {
+      stopTimerInterval();
+      timerTotal = seconds;
+      timerRemaining = seconds;
+      timerPanel.classList.remove("timer-done");
+      renderTimerDisplay();
+      updateTimerButtons();
+    }
+
+    function startTimer(seconds) {
+      if (typeof seconds === "number") {
+        timerTotal = seconds;
+        timerRemaining = seconds;
+      }
+      if (timerRemaining <= 0) return;
+
+      timerPanel.classList.remove("timer-done");
+      timerRunning = true;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timerRemaining -= 1;
+        renderTimerDisplay();
+        if (timerRemaining <= 0) finishTimer();
+      }, 1000);
+      renderTimerDisplay();
+      updateTimerButtons();
+    }
+
+    function pauseTimer() {
+      stopTimerInterval();
+      updateTimerButtons();
+    }
+
+    function finishTimer() {
+      stopTimerInterval();
+      timerRemaining = 0;
+      renderTimerDisplay();
+      timerPanel.classList.add("timer-done");
+      if (navigator.vibrate) navigator.vibrate([200, 120, 200, 120, 200]);
+      showToast("Timer terminato.");
+      updateTimerButtons();
+      setTimeout(() => timerPanel.classList.remove("timer-done"), 4000);
+    }
+
+    timerPresetButtons.forEach((button) => {
+      button.addEventListener("click", () => startTimer(Number(button.dataset.seconds)));
+    });
+
+    timerStart.addEventListener("click", () => {
+      const custom = Number(timerCustom.value);
+      if (!custom || custom <= 0) {
+        showToast("Inserisci una durata valida.");
+        return;
+      }
+      startTimer(custom);
+    });
+
+    timerPause.addEventListener("click", () => {
+      if (timerRunning) pauseTimer();
+      else startTimer();
+    });
+
+    timerReset.addEventListener("click", () => setIdleTimer(0));
+
+    setIdleTimer(0);
 
     render();
 

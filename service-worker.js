@@ -1,4 +1,4 @@
-const CACHE_NAME = "progressi-palestra-v4";
+const CACHE_NAME = "progressi-palestra-v5";
 const APP_FILES = [
   "./",
   "./index.html",
